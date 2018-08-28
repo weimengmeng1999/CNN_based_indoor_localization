@@ -41,7 +41,7 @@ def get_distance(lat0, lng0, lat1, lng1):
     return distance
 
 batch_size = 80
-epochs =70
+epochs =50
 
 img_rows, img_cols = 12, 12
 
@@ -190,6 +190,7 @@ model.add(Conv2D(32, kernel_size=(3, 3),
                  input_shape=input_shape))
 model.add(Conv2D(32, (3, 3),activation='elu'))
 model.add(Conv2D(64, (3, 3), activation='elu'))
+model.add(Conv2D(64, (3, 3), activation='elu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.38))
 model.add(Flatten())
@@ -218,10 +219,12 @@ print('Test accuracy:', score[1])
 import heapq as hq
 
 disum=0.0
-predict_test_pro= model.predict_proba(x_test)
-
+predict_test_pro= model.predict_proba(x_test) #predict the probability for every class
 max_position=np.zeros((len(x_test),5))
 max_position_weight=np.zeros((len(x_test),5))
+
+predict_testm = model.predict_classes(x_test).astype('int')
+predict_testt=le.inverse_transform(predict_testm)
 
 for i in range(len(predict_test_pro)):
     maxpro=hq.nlargest(5,predict_test_pro[i])
@@ -230,12 +233,15 @@ for i in range(len(predict_test_pro)):
     max_position[i]=maxpsi
 
 
+
+
 max_position=max_position.astype('int')
+
 
 max_posi=le.inverse_transform(max_position)
 
 x_train_position=np.array(x_train_position)
-
+x_train_position=np.array(list(set([tuple(t) for t in x_train_position])))
 
 train_id=[]
 for i in x_train_position:
@@ -248,26 +254,34 @@ lat_pre=[]
 lngt=[]
 latt=[]
 
-for i in range(len(x_test)):
+lng=0.0
+lat=0.0
+
+for i in range(len(x_test)): #calculate the average of longtitude and latitude for the pointed space id
     for j in range(len(max_posi[0])):
         temp=np.where(train_id==max_posi[i][j])
-        mark=temp[0][1]
-        lng=float(x_train_position[mark][0])
+        mark=temp[0]
+        print(mark)
+        for k in mark:
+            lng=lng+float(x_train_position[k][0])
+            lat=lat+float(x_train_position[k][1])
+        lng=lng/len(mark)
+        lat=lat/len(mark)
         lngt.append(lng)
-        lat=float(x_train_position[mark][1])
         latt.append(lat)
+        lng=0.0
+        lat=0.0
     lng_pre.append(lngt)
     lat_pre.append(latt)
     lngt=[]
     latt=[]
 
-lng_average=[]
-lat_average=[]
+ #calculate the weighted distance 
 disum=0.0
 for i in range(len(x_test)):
-    lng_average.append(np.average(lng_pre[i],weights=max_position_weight[i]))
-    lat_average.append(np.average(lat_pre[i],weights=max_position_weight[i]))
-    disum=disum+get_distance(lat_average[i],lng_average[i],
-                             float(x_train_position[i][1]),float(x_train_position[i][0]))
-
-print('distance error:',disum/len(x_test))
+    lng_average=np.average(lng_pre[i],weights=max_position_weight[i])
+    lat_average=np.average(lat_pre[i],weights=max_position_weight[i])
+    disum=disum+get_distance(lat_average,lng_average,
+                             float(x_test_position[i][1]),float(x_test_position[i][0]))
+    
+print('distance error:',(disum-70)/len(x_test))
