@@ -57,7 +57,7 @@ x_train_position=[]
 x_test_position=[]
 
 
-with open(r'C:/Users/weimeng/Desktop/fingerprinting/UJIndoorLoc/tranning_data_2floor.csv') as csvfile:
+with open(r'.../UJIndoorLoc/tranning_data_2floor.csv') as csvfile:
     readcsv=csv.reader(csvfile, delimiter=',')
     for row in readcsv:
          ppb.append(row)
@@ -71,7 +71,7 @@ for i in ppb:
     i.pop()
     i.pop()
 
-with open(r'C:/Users/weimeng/Desktop/fingerprinting/UJIndoorLoc/validation_data_2floor.csv') as vafile:
+with open(r'.../UJIndoorLoc/validation_data_2floor.csv') as vafile:
     readva=csv.reader(vafile, delimiter=',')
     for row in readva:
          ppv.append(row)
@@ -89,7 +89,7 @@ del(x_test_position[0])
 
 
 
-workbook = xlrd.open_workbook('C:/Users/weimeng/Desktop/Data/2_floor_AP_arrange.xlsx')
+workbook = xlrd.open_workbook('.../2_floor_AP_arrange.xlsx')
 booksheet = workbook.sheet_by_index(0)         
 
 for i in range(12):
